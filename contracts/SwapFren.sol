@@ -56,12 +56,14 @@ contract SwapFren {
                 forContract.getApproved(_forTokenId) == address(this),
                 "Not approved to transfer their token fren"
             );
-            _frenSwaps[msg.sender].fromFren = msg.sender;
-            _frenSwaps[msg.sender].fromTokenContract = _fromTokenContract;
-            _frenSwaps[msg.sender].fromTokenId = _fromTokenId;
-            _frenSwaps[msg.sender].forFren = _forFren;
-            _frenSwaps[msg.sender].forTokenContract = _forTokenContract;
-            _frenSwaps[msg.sender].forTokenId = _forTokenId;
+            _frenSwaps[msg.sender] = Swap(
+                msg.sender,
+                _fromTokenContract,
+                _fromTokenId,
+                _forFren,
+                _forTokenContract,
+                _forTokenId
+            );
         } else {
             Swap memory frenSwap = _frenSwaps[_fromFren];
             require(frenSwap.forFren == msg.sender, "No swap ready fren");
