@@ -115,36 +115,33 @@ describe("SwapFrenTest", function () {
     expect(swap.forTokenId).to.equal(0);
   });
 
-  it("should explode with bad NFT address for maker", async () => {
+  it("should explode with bad maker NFT address for makeSwap", async () => {
     // Set expected message for bad maker token address
     let msg = "Swap maker token contract does not support IERC721";
     // Attempt to make a swap
     await expect(
-      SwapFren.swapWithFren(
-        owner.address,
+      SwapFren.makeSwap(
         secondAddress.address,
         1,
         thirdAddress.address,
         MockCatERC721.address,
-        2,
-        false
+        2
       )
     ).to.be.revertedWith(msg);
+  });
+
+  it("should explode with bad taker NFT address for makeSwap", async () => {
     // Set expected message for bad maker token address
-    msg = "Swap taker token contract does not support IERC721";
+    let msg = "Swap taker token contract does not support IERC721";
     // Attempt to make a swap
     await expect(
-      SwapFren.swapWithFren(
-        owner.address,
+      SwapFren.makeSwap(
         MockDogERC721.address,
         1,
         thirdAddress.address,
         secondAddress.address,
-        2,
-        false
+        2
       )
     ).to.be.revertedWith(msg);
-
-
   });
 });

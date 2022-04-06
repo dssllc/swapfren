@@ -21,7 +21,6 @@ contract SwapFren {
 
     constructor() {
         _erc721InterfaceId = type(IERC721).interfaceId;
-        _frenSwaps[msg.sender].fromFren == msg.sender;
     }
 
     function makeSwap(
