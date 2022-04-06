@@ -1,6 +1,11 @@
 import React from 'react';
 import logo from './logo.svg';
+import { Routes, Route, Link } from "react-router-dom";
 import './App.css';
+import Button from '@mui/material/Button';
+import Hero from './Hero';
+import MakeSwap from './MakeSwap';
+import TakeSwap from './TakeSwap';
 
 function App() {
   return (
@@ -10,14 +15,15 @@ function App() {
         <p>
           Edit <code>src/App.tsx</code> and save to reload, duh!
         </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <Button>
           Learn React
-        </a>
+        </Button>
+        <Routes>
+          <Route path="/" element={<App />} />
+          <Route index element={<Hero />} />
+          <Route path="make" element={<MakeSwap />} />
+          <Route path="take" element={<TakeSwap />} />
+      </Routes>
       </header>
     </div>
   );
