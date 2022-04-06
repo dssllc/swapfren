@@ -67,14 +67,12 @@ describe("SwapFrenTest", function () {
     expect(await MockCatERC721.getApproved(2)).to.equal(SwapFren.address);
 
     // Party A create swap
-    await SwapFren.connect(secondAddress).swapWithFren(
-      secondAddress.address,
+    await SwapFren.connect(secondAddress).makeSwap(
       MockDogERC721.address,
       1,
       thirdAddress.address,
       MockCatERC721.address,
-      2,
-      false
+      2
     );
 
     // Get active swap for fren.
@@ -89,14 +87,8 @@ describe("SwapFrenTest", function () {
     expect(swap.forTokenId).to.equal(2);
 
     // Party B accept swap
-    await SwapFren.connect(thirdAddress).swapWithFren(
-      secondAddress.address,
-      MockDogERC721.address,
-      1,
-      thirdAddress.address,
-      MockCatERC721.address,
-      2,
-      true
+    await SwapFren.connect(thirdAddress).takeSwap(
+      secondAddress.address
     );
 
     // Verify emptied approvals

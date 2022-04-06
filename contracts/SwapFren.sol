@@ -24,14 +24,12 @@ contract SwapFren {
         _frenSwaps[msg.sender].fromFren == msg.sender;
     }
 
-    function swapWithFren(
-        address _fromFren,
+    function makeSwap(
         address _fromTokenContract,
         uint256 _fromTokenId,
         address _forFren,
         address _forTokenContract,
-        uint256 _forTokenId,
-        bool _acceptSwap
+        uint256 _forTokenId
     ) external {
         require(
             _fromTokenContract.supportsInterface(_erc721InterfaceId),
@@ -41,54 +39,64 @@ contract SwapFren {
             _forTokenContract.supportsInterface(_erc721InterfaceId),
             "Swap taker token contract does not support IERC721"
         );
-        if (!_acceptSwap) {
-            IERC721 fromContract = IERC721(_fromTokenContract);
-            IERC721 forContract = IERC721(_forTokenContract);
-            require(
-                _frenSwaps[msg.sender].fromFren == address(0),
-                "Swap in progress fren"
-            );
-            require(
-                fromContract.getApproved(_fromTokenId) == address(this),
-                "Not approved to transfer your token fren"
-            );
-            require(
-                forContract.getApproved(_forTokenId) == address(this),
-                "Not approved to transfer their token fren"
-            );
-            _frenSwaps[msg.sender] = Swap(
-                msg.sender,
-                _fromTokenContract,
-                _fromTokenId,
-                _forFren,
-                _forTokenContract,
-                _forTokenId
-            );
-        } else {
-            Swap memory frenSwap = _frenSwaps[_fromFren];
-            require(frenSwap.forFren == msg.sender, "No swap ready fren");
-            IERC721 fromContract = IERC721(frenSwap.fromTokenContract);
-            IERC721 forContract = IERC721(frenSwap.forTokenContract);
-            require(
-                fromContract.getApproved(frenSwap.fromTokenId) == address(this),
-                "Not approved to transfer their token fren"
-            );
-            require(
-                forContract.getApproved(frenSwap.forTokenId) == address(this),
-                "Not approved to transfer your token fren"
-            );
-            fromContract.transferFrom(
-                frenSwap.fromFren,
-                frenSwap.forFren,
-                frenSwap.fromTokenId
-            );
-            forContract.transferFrom(
-                frenSwap.forFren,
-                frenSwap.fromFren,
-                frenSwap.forTokenId
-            );
-            delete _frenSwaps[_fromFren];
-        }
+        IERC721 fromContract = IERC721(_fromTokenContract);
+        IERC721 forContract = IERC721(_forTokenContract);
+        require(
+            _frenSwaps[msg.sender].fromFren == address(0),
+            "Swap in progress fren"
+        );
+        require(
+            fromContract.getApproved(_fromTokenId) == address(this),
+            "Not approved to transfer your token fren"
+        );
+        require(
+            forContract.getApproved(_forTokenId) == address(this),
+            "Not approved to transfer their token fren"
+        );
+        _frenSwaps[msg.sender] = Swap(
+            msg.sender,
+            _fromTokenContract,
+            _fromTokenId,
+            _forFren,
+            _forTokenContract,
+            _forTokenId
+        );
+    }
+
+    function takeSwap(
+        address _fromFren
+    ) external {
+        Swap memory frenSwap = _frenSwaps[_fromFren];
+        require(frenSwap.forFren == msg.sender, "No swap ready fren");
+        require(
+            frenSwap.fromTokenContract.supportsInterface(_erc721InterfaceId),
+            "Swap maker token contract does not support IERC721"
+        );
+        require(
+            frenSwap.forTokenContract.supportsInterface(_erc721InterfaceId),
+            "Swap taker token contract does not support IERC721"
+        );
+        IERC721 fromContract = IERC721(frenSwap.fromTokenContract);
+        IERC721 forContract = IERC721(frenSwap.forTokenContract);
+        require(
+            fromContract.getApproved(frenSwap.fromTokenId) == address(this),
+            "Not approved to transfer their token fren"
+        );
+        require(
+            forContract.getApproved(frenSwap.forTokenId) == address(this),
+            "Not approved to transfer your token fren"
+        );
+        fromContract.transferFrom(
+            frenSwap.fromFren,
+            frenSwap.forFren,
+            frenSwap.fromTokenId
+        );
+        forContract.transferFrom(
+            frenSwap.forFren,
+            frenSwap.fromFren,
+            frenSwap.forTokenId
+        );
+        delete _frenSwaps[_fromFren];
     }
 
     function getSwapForFren(address _fromFren)
