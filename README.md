@@ -1,5 +1,5 @@
 # swapfren
-a simple contract for swapping tokens on ethereum
+a digital fren to help swap tokens on ethereum
 
 ## Advanced Sample Hardhat Project
 
