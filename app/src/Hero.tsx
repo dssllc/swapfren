@@ -7,7 +7,7 @@ function Hero() {
   return (
     <Box sx={{ flexGrow: 1, mb: 5 }}>
       <h1>SwapFren</h1>
-      <Grid container spacing={2}>
+      <Grid container spacing={6}>
         <Grid item xs={6}>
           <MakeSwap />
         </Grid>

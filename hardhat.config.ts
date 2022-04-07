@@ -49,7 +49,7 @@ const config: HardhatUserConfig = {
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     hardhat2: {
-      url: "http://localhost:8545",
+      url: "http://127.0.0.1:8545",
       chainId: 1337,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
