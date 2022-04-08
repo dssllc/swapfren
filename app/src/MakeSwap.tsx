@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
+import Link from "@mui/material/Link";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { ethers } from "ethers";
@@ -8,10 +9,9 @@ import SwapFren
   from "./artifacts/contracts/SwapFren.sol/SwapFren.json";
 import MockERC721
   from "./artifacts/contracts/MockERC721.sol/MockERC721.json";
+import Config from "./config";
 
 function MakeSwap() {
-  const swapFrenTokenContract = "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318";
-
   const [userConnected, setUserConnected] = useState(false);
   const [fromTokenContract, setFromTokenContract] = useState("");
   const [fromTokenId, setFromTokenId] = useState(0);
@@ -23,15 +23,17 @@ function MakeSwap() {
   const [fromTokenApproved, setFromTokenApproved] = useState(false);
   const [swapChecked, setSwapChecked] = useState(false);
   const [swapPending, setSwapPending] = useState(true);
+  const [swapTxn, setSwapTxn] = useState("");
 
   async function toggleUserConnection() {
     if (!!(window as any).ethereum) {
       if (!userConnected) {
+        setSwapTxn("");
         const provider = new ethers.providers.Web3Provider((window as any).ethereum)
         await provider.send("eth_requestAccounts", []);
         setSigner(provider.getSigner());
         const tokenContract = new ethers.Contract(
-          swapFrenTokenContract,
+          Config.swapFrenContract,
           SwapFren.abi,
           provider
         );
@@ -53,7 +55,7 @@ function MakeSwap() {
       signer
     );
     setFromTokenChecked(true);
-    setFromTokenApproved((await tokenContract.getApproved(fromTokenId)) == swapFrenTokenContract);
+    setFromTokenApproved((await tokenContract.getApproved(fromTokenId)) == Config.swapFrenContract);
   }
 
   async function approveFromToken() {
@@ -62,10 +64,10 @@ function MakeSwap() {
       MockERC721.abi,
       signer
     );
-    let txn: any = await tokenContract.approve(swapFrenTokenContract, fromTokenId);
+    let txn: any = await tokenContract.approve(Config.swapFrenContract, fromTokenId);
     await txn.wait();
     setFromTokenChecked(false);
-    setFromTokenApproved((await tokenContract.getApproved(fromTokenId)) == swapFrenTokenContract);
+    setFromTokenApproved((await tokenContract.getApproved(fromTokenId)) == Config.swapFrenContract);
   }
 
   async function cancelSwapFrenApproval() {
@@ -89,11 +91,12 @@ function MakeSwap() {
     setSigner(undefined);
     setFromTokenChecked(false);
     setFromTokenApproved(false);
+    setSwapTxn("");
   }
 
   async function makeSwap() {
     const tokenContract = new ethers.Contract(
-      swapFrenTokenContract,
+      Config.swapFrenContract,
       SwapFren.abi,
       signer
     );
@@ -106,11 +109,12 @@ function MakeSwap() {
     );
     await txn.wait();
     clearForm();
+    setSwapTxn(txn.hash);
   }
 
   async function cancelSwap() {
     const tokenContract = new ethers.Contract(
-      swapFrenTokenContract,
+      Config.swapFrenContract,
       SwapFren.abi,
       signer
     );
@@ -254,6 +258,19 @@ function MakeSwap() {
             Cancel Open Swap
         </Button>
       </>
+      }
+      {swapTxn &&
+        <Alert severity="info" sx={{ mb: 1 }}>
+          Swap made!<br />
+          <Link
+            href={Config.etherScanUrl + swapTxn}
+            underline="always"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            Please check transaction
+          </Link>
+        </Alert>
       }
     </>
 
