@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 
-contract SwapFren {
+contract SwapFren721 {
     using ERC165Checker for address;
     bytes4 private immutable _erc721InterfaceId;
 

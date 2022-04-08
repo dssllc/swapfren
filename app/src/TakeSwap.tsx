@@ -5,8 +5,8 @@ import Link from "@mui/material/Link";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { ethers } from "ethers";
-import SwapFren
-  from "./artifacts/contracts/SwapFren.sol/SwapFren.json";
+import SwapFren721
+  from "./artifacts/contracts/SwapFren721.sol/SwapFren721.json";
 import MockERC721
   from "./artifacts/contracts/MockERC721.sol/MockERC721.json";
 import Config from "./config";
@@ -40,7 +40,7 @@ function TakeSwap() {
         setSigner(await provider.getSigner());
         const tokenContract = new ethers.Contract(
           Config.swapFrenContract,
-          SwapFren.abi,
+          SwapFren721.abi,
           provider
         );
       } else {
@@ -65,7 +65,7 @@ function TakeSwap() {
   async function checkForSwap() {
     const tokenContract = new ethers.Contract(
       Config.swapFrenContract,
-      SwapFren.abi,
+      SwapFren721.abi,
       signer
     );
     let info: any = await tokenContract.getSwapForFren(fromFren);
@@ -77,7 +77,7 @@ function TakeSwap() {
   async function takeSwap() {
     const tokenContract = new ethers.Contract(
       Config.swapFrenContract,
-      SwapFren.abi,
+      SwapFren721.abi,
       signer
     );
     let txn: any = await tokenContract.takeSwap(fromFren);
@@ -131,7 +131,7 @@ function TakeSwap() {
       <Typography gutterBottom>Please connect your wallet.</Typography>
       <Button
         sx={{ mb: 1 }}
-        variant="contained"
+        variant={userConnected ? "outlined" : "contained"}
         onClick={toggleUserConnection}
       >
           {userConnected ? "Disconnect" : "Connect"}
@@ -144,7 +144,6 @@ function TakeSwap() {
           variant="outlined"
           onChange={(e) => setFromFren(e.target.value)}
           error={false}
-          helperText={"Please use full address 0xAABB..."}
           fullWidth
           sx={{ mb: 1 }}
         />
@@ -160,11 +159,60 @@ function TakeSwap() {
       {userConnected && swapChecked && swapPending &&
         <>
           <Alert severity="success" sx={{ mb: 1 }}>You swap is ready to go!</Alert>
-          <Typography gutterBottom><strong>From:</strong> {swapInfo?.fromFren}</Typography>
-          <Typography gutterBottom><strong>From Token:</strong> {swapInfo?.fromTokenContract}</Typography>
-          <Typography gutterBottom><strong>From Token ID:</strong> {swapInfo?.fromTokenId.toString()}</Typography>
-          <Typography gutterBottom><strong>For Token:</strong> {swapInfo?.forTokenContract}</Typography>
-          <Typography gutterBottom><strong>For Token ID:</strong> {swapInfo?.forTokenId.toString()}</Typography>
+          <Typography gutterBottom>
+            <strong>From: </strong>
+            <Link
+              href={`${Config.etherScanUrl}/address/${swapInfo?.fromFren}`}
+              underline="always"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              {swapInfo?.fromFren}
+            </Link>
+          </Typography>
+          <Typography gutterBottom>
+            <strong>From Token:</strong>
+            <Link
+              href={`${Config.etherScanUrl}/token/${swapInfo?.fromTokenContract}`}
+              underline="always"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              {swapInfo?.fromTokenContract}
+            </Link>
+          </Typography>
+          <Typography gutterBottom>
+            <strong>From Token ID:</strong>
+            <Link
+              href={`${Config.etherScanUrl}/token/${swapInfo?.fromTokenContract}?a=${swapInfo?.fromTokenId.toString()}#inventory`}
+              underline="always"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              {swapInfo?.fromTokenId.toString()}
+            </Link>
+          </Typography>
+          <Typography gutterBottom>
+            <strong>For Token:</strong>
+            <Link
+              href={`${Config.etherScanUrl}/token/${swapInfo?.forTokenContract}`}
+              underline="always"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              {swapInfo?.forTokenContract}
+            </Link>
+          </Typography>
+          <Typography gutterBottom>
+            <strong>For Token ID:</strong><Link
+              href={`${Config.etherScanUrl}/address/${swapInfo?.forTokenContract}?a=${swapInfo?.forTokenId.toString()}#inventory`}
+              underline="always"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              {swapInfo?.forTokenId.toString()}
+            </Link>
+          </Typography>
 
 
           <Typography gutterBottom>Please approve SwapFren to transfer your NFT.</Typography>
@@ -231,7 +279,7 @@ function TakeSwap() {
         <Alert severity="info" sx={{ mb: 1 }}>
           Swap made!<br />
           <Link
-            href={Config.etherScanUrl + swapTxn}
+            href={`${Config.etherScanUrl}/tx/${swapTxn}`}
             underline="always"
             target="_blank"
             rel="noreferrer noopener"

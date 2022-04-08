@@ -3,11 +3,11 @@ import { ethers } from "hardhat";
 async function main() {
   const contractVersion = "SwapFren721vAlpha1";
   const contract = await ethers.getContractFactory(contractVersion);
-  const SwapFren = await contract.deploy();
+  const SwapFren721 = await contract.deploy();
 
-  await SwapFren.deployed();
+  await SwapFren721.deployed();
 
-  console.log(`${contractVersion} deployed to:`, SwapFren.address);
+  console.log(`${contractVersion} deployed to:`, SwapFren721.address);
 }
 
 main().catch((error) => {

@@ -5,8 +5,8 @@ import Link from "@mui/material/Link";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { ethers } from "ethers";
-import SwapFren
-  from "./artifacts/contracts/SwapFren.sol/SwapFren.json";
+import SwapFren721
+  from "./artifacts/contracts/SwapFren721.sol/SwapFren721.json";
 import MockERC721
   from "./artifacts/contracts/MockERC721.sol/MockERC721.json";
 import Config from "./config";
@@ -34,7 +34,7 @@ function MakeSwap() {
         setSigner(provider.getSigner());
         const tokenContract = new ethers.Contract(
           Config.swapFrenContract,
-          SwapFren.abi,
+          SwapFren721.abi,
           provider
         );
         let wallet: any = await provider.getSigner().getAddress();
@@ -97,7 +97,7 @@ function MakeSwap() {
   async function makeSwap() {
     const tokenContract = new ethers.Contract(
       Config.swapFrenContract,
-      SwapFren.abi,
+      SwapFren721.abi,
       signer
     );
     let txn: any = await tokenContract.makeSwap(
@@ -115,7 +115,7 @@ function MakeSwap() {
   async function cancelSwap() {
     const tokenContract = new ethers.Contract(
       Config.swapFrenContract,
-      SwapFren.abi,
+      SwapFren721.abi,
       signer
     );
     let txn: any = await tokenContract.cancelSwapMySwaps();
@@ -131,7 +131,7 @@ function MakeSwap() {
       <Typography gutterBottom>Please connect your wallet.</Typography>
       <Button
         sx={{ mb: 1 }}
-        variant="contained"
+        variant={userConnected ? "outlined" : "contained"}
         onClick={toggleUserConnection}
       >
           {userConnected ? "Disconnect" : "Connect"}
@@ -142,7 +142,6 @@ function MakeSwap() {
         <TextField
           label="Your NFT address"
           variant="outlined"
-          helperText={"Enter a full address 0xAABB..."}
           fullWidth
           disabled={!userConnected}
           onChange={(e) => setFromTokenContract(e.target.value)}
@@ -152,7 +151,6 @@ function MakeSwap() {
         <TextField
           label="Your NFT ID"
           variant="outlined"
-          helperText={"Enter a number"}
           fullWidth
           disabled={!userConnected}
           onChange={(e) => {
@@ -203,43 +201,44 @@ function MakeSwap() {
           </>
         }
 
-        <Typography gutterBottom>Please enter the owner wallet address of the NFT you want to trade for.</Typography>
-        <TextField
-          label="Fren address"
-          variant="outlined"
-          helperText={"Enter a full address 0xAABB..."}
-          fullWidth
-          disabled={!userConnected || !fromTokenApproved}
-          onChange={(e) => setForFren(e.target.value)}
-          sx={{ mb: 1 }}
-        />
-        <Typography gutterBottom>Please enter the contract address of the NFT you want to trade for.</Typography>
-        <TextField
-          label="Fren NFT address"
-          variant="outlined"
-          helperText={"Enter a full address 0xAABB..."}
-          fullWidth
-          disabled={!userConnected || !fromTokenApproved}
-          onChange={(e) => setforTokenContract(e.target.value)}
-          sx={{ mb: 1 }}
-        />
-        <Typography gutterBottom>Please enter the ID of the NFT you want to trade for.</Typography>
-        <TextField
-          label="Fren NFT ID"
-          variant="outlined"
-          helperText={"Enter a number"}
-          fullWidth
-          disabled={!userConnected || !fromTokenApproved}
-          onChange={(e) => setForTokenId(parseInt(e.target.value))}
-          sx={{ mb: 1 }}
-        />
-        <Button
-          variant="contained"
-          onClick={() => makeSwap()}
-          disabled={!userConnected}
-        >
-            Submit
-        </Button>
+        {fromTokenChecked && fromTokenApproved  &&
+          <>
+            <Typography gutterBottom>Please enter the owner wallet address of the NFT you want to trade for.</Typography>
+            <TextField
+              label="Fren address"
+              variant="outlined"
+              fullWidth
+              disabled={!userConnected || !fromTokenApproved}
+              onChange={(e) => setForFren(e.target.value)}
+              sx={{ mb: 1 }}
+            />
+            <Typography gutterBottom>Please enter the contract address of the NFT you want to trade for.</Typography>
+            <TextField
+              label="Fren NFT address"
+              variant="outlined"
+              fullWidth
+              disabled={!userConnected || !fromTokenApproved}
+              onChange={(e) => setforTokenContract(e.target.value)}
+              sx={{ mb: 1 }}
+            />
+            <Typography gutterBottom>Please enter the ID of the NFT you want to trade for.</Typography>
+            <TextField
+              label="Fren NFT ID"
+              variant="outlined"
+              fullWidth
+              disabled={!userConnected || !fromTokenApproved}
+              onChange={(e) => setForTokenId(parseInt(e.target.value))}
+              sx={{ mb: 1 }}
+            />
+            <Button
+              variant="contained"
+              onClick={() => makeSwap()}
+              disabled={!userConnected || !fromTokenApproved}
+            >
+                Submit
+            </Button>
+          </>
+        }
       </>
       }
       {userConnected && !swapChecked &&
@@ -261,9 +260,9 @@ function MakeSwap() {
       }
       {swapTxn &&
         <Alert severity="info" sx={{ mb: 1 }}>
-          Swap made!<br />
+          Swap made! Tell your fren so they can accept.<br />
           <Link
-            href={Config.etherScanUrl + swapTxn}
+            href={`${Config.etherScanUrl}/tx/${swapTxn}`}
             underline="always"
             target="_blank"
             rel="noreferrer noopener"
