@@ -1,9 +1,7 @@
-import React from "react";
 import { useState } from "react";
 import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import { TextFieldProps } from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { ethers } from "ethers";
 import SwapFren
@@ -12,8 +10,7 @@ import MockERC721
   from "./artifacts/contracts/MockERC721.sol/MockERC721.json";
 
 function MakeSwap() {
-
-  const swapFrenTokenContract = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+  const swapFrenTokenContract = "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318";
 
   const [userConnected, setUserConnected] = useState(false);
   const [fromTokenContract, setFromTokenContract] = useState("");
@@ -65,8 +62,21 @@ function MakeSwap() {
       MockERC721.abi,
       signer
     );
-    await tokenContract.approve(swapFrenTokenContract, fromTokenId);
+    let txn: any = await tokenContract.approve(swapFrenTokenContract, fromTokenId);
+    await txn.wait();
+    setFromTokenChecked(false);
     setFromTokenApproved((await tokenContract.getApproved(fromTokenId)) == swapFrenTokenContract);
+  }
+
+  async function cancelSwapFrenApproval() {
+    const tokenContract = new ethers.Contract(
+      fromTokenContract,
+      MockERC721.abi,
+      signer
+    );
+    let txn: any = await tokenContract.approve(ethers.constants.AddressZero, fromTokenId);
+    await txn.wait();
+    setFromTokenApproved(false);
   }
 
   function clearForm() {
@@ -82,32 +92,31 @@ function MakeSwap() {
   }
 
   async function makeSwap() {
-    // console.log(
-    //   (await signer?.getAddress()),
-    //   fromTokenContract,"fromTokenContract",
-    //   fromTokenId,"fromTokenId",
-    //   forFren,"forFren",
-    //   forTokenContract,"forTokenContract",
-    //   forTokenId,"forTokenId"
-    // )
     const tokenContract = new ethers.Contract(
       swapFrenTokenContract,
       SwapFren.abi,
       signer
     );
-    // console.log(
-    //   await tokenContract.takeSwap(
-    //     "0x5FbDB2315678afecb367f032d93F642f64180aa3"
-    //   )
-    // );
-    await tokenContract.makeSwap(
+    let txn: any = await tokenContract.makeSwap(
       fromTokenContract,
       fromTokenId,
       forFren,
       forTokenContract,
       forTokenId
     );
+    await txn.wait();
     clearForm();
+  }
+
+  async function cancelSwap() {
+    const tokenContract = new ethers.Contract(
+      swapFrenTokenContract,
+      SwapFren.abi,
+      signer
+    );
+    let txn: any = await tokenContract.cancelSwapMySwaps();
+    await txn.wait();
+    setSwapPending(false);
   }
 
   return (
@@ -117,6 +126,7 @@ function MakeSwap() {
       </Typography>
       <Typography gutterBottom>Please connect your wallet.</Typography>
       <Button
+        sx={{ mb: 1 }}
         variant="contained"
         onClick={toggleUserConnection}
       >
@@ -132,6 +142,7 @@ function MakeSwap() {
           fullWidth
           disabled={!userConnected}
           onChange={(e) => setFromTokenContract(e.target.value)}
+          sx={{ mb: 1 }}
         />
         <Typography gutterBottom>Please enter the ID of the NFT you want to trade.</Typography>
         <TextField
@@ -144,6 +155,7 @@ function MakeSwap() {
             setFromTokenChecked(false);
             setFromTokenId(parseInt(e.target.value));
           }}
+          sx={{ mb: 1 }}
         />
 
         <Typography gutterBottom>Please approve SwapFren to transfer your NFT.</Typography>
@@ -153,6 +165,7 @@ function MakeSwap() {
           variant="contained"
           onClick={() => checkFromTokenApproval()}
           disabled={!userConnected}
+          sx={{ mb: 1 }}
         >
             Check Approval
         </Button>
@@ -160,11 +173,12 @@ function MakeSwap() {
 
         {fromTokenChecked && !fromTokenApproved  &&
           <>
-            <Alert severity="warning">Token NOT approved!</Alert>
+            <Alert severity="warning" sx={{ mb: 1 }} >Token NOT approved!</Alert>
             <Button
               variant="contained"
               onClick={() => approveFromToken()}
               disabled={!userConnected}
+              sx={{ mb: 1 }}
             >
                 Approve SwapFren
             </Button>
@@ -172,7 +186,17 @@ function MakeSwap() {
         }
 
         {fromTokenChecked && fromTokenApproved  &&
-          <Alert severity="success">Token approved!</Alert>
+          <>
+            <Alert severity="success" sx={{ mb: 1 }}>Token approved!</Alert>
+            <Button
+              variant="outlined"
+              onClick={() => cancelSwapFrenApproval()}
+              disabled={!fromTokenApproved}
+              sx={{ mb: 1 }}
+            >
+                Cancel SwapFren Approval
+            </Button>
+          </>
         }
 
         <Typography gutterBottom>Please enter the owner wallet address of the NFT you want to trade for.</Typography>
@@ -181,8 +205,9 @@ function MakeSwap() {
           variant="outlined"
           helperText={"Enter a full address 0xAABB..."}
           fullWidth
-          disabled={!userConnected}
+          disabled={!userConnected || !fromTokenApproved}
           onChange={(e) => setForFren(e.target.value)}
+          sx={{ mb: 1 }}
         />
         <Typography gutterBottom>Please enter the contract address of the NFT you want to trade for.</Typography>
         <TextField
@@ -190,8 +215,9 @@ function MakeSwap() {
           variant="outlined"
           helperText={"Enter a full address 0xAABB..."}
           fullWidth
-          disabled={!userConnected}
+          disabled={!userConnected || !fromTokenApproved}
           onChange={(e) => setforTokenContract(e.target.value)}
+          sx={{ mb: 1 }}
         />
         <Typography gutterBottom>Please enter the ID of the NFT you want to trade for.</Typography>
         <TextField
@@ -199,8 +225,9 @@ function MakeSwap() {
           variant="outlined"
           helperText={"Enter a number"}
           fullWidth
-          disabled={!userConnected}
+          disabled={!userConnected || !fromTokenApproved}
           onChange={(e) => setForTokenId(parseInt(e.target.value))}
+          sx={{ mb: 1 }}
         />
         <Button
           variant="contained"
@@ -213,12 +240,19 @@ function MakeSwap() {
       }
       {userConnected && !swapChecked &&
       <>
-        <Alert severity="info">Checking for existing swap...</Alert>
+        <Alert severity="info" sx={{ mb: 1 }}>Checking for existing swap...</Alert>
       </>
       }
       {userConnected && swapChecked && swapPending &&
       <>
-        <Alert severity="info">You already have an open swap</Alert>
+        <Alert severity="info" sx={{ mb: 1 }}>You already have an open swap</Alert>
+        <Button
+          variant="outlined"
+          onClick={() => cancelSwap()}
+          disabled={!userConnected}
+        >
+            Cancel Open Swap
+        </Button>
       </>
       }
     </>

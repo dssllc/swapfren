@@ -100,4 +100,10 @@ contract SwapFren {
     {
         return _frenSwaps[_fromFren];
     }
+
+    function cancelSwapMySwaps()
+        external
+    {
+        delete _frenSwaps[msg.sender];
+    }
 }
