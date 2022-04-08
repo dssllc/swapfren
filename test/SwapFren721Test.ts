@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
-describe("SwapFrenTest", function () {
+describe("SwapFren721Test", function () {
   let owner: any,
     secondAddress: any,
     thirdAddress: any,
@@ -9,8 +9,8 @@ describe("SwapFrenTest", function () {
     MockDogERC721: any,
     MockCatERC721Contract: any,
     MockCatERC721: any,
-    SwapFrenContract: any,
-    SwapFren: any;
+    SwapFren721Contract: any,
+    SwapFren721: any;
 
   before(async () => {
     // Get addresses.
@@ -31,10 +31,10 @@ describe("SwapFrenTest", function () {
     await MockCatERC721.mint(owner.address);
     await MockCatERC721.mint(secondAddress.address);
     await MockCatERC721.mint(thirdAddress.address);
-    // Deploy SwapFren contract for testing.
-    SwapFrenContract = await ethers.getContractFactory("SwapFren");
-    SwapFren = await SwapFrenContract.deploy();
-    await SwapFren.deployed();
+    // Deploy SwapFren721 contract for testing.
+    SwapFren721Contract = await ethers.getContractFactory("SwapFren721");
+    SwapFren721 = await SwapFren721Contract.deploy();
+    await SwapFren721.deployed();
   });
 
   it("should swap with a fren", async () => {
@@ -52,22 +52,22 @@ describe("SwapFrenTest", function () {
 
     // Party A approval
     let approve = await MockDogERC721.connect(secondAddress).approve(
-      SwapFren.address,
+      SwapFren721.address,
       1
     );
 
     // Party B approval
     approve = await MockCatERC721.connect(thirdAddress).approve(
-      SwapFren.address,
+      SwapFren721.address,
       2
     );
 
-    // Verify approvals for SwapFren
-    expect(await MockDogERC721.getApproved(1)).to.equal(SwapFren.address);
-    expect(await MockCatERC721.getApproved(2)).to.equal(SwapFren.address);
+    // Verify approvals for SwapFren721
+    expect(await MockDogERC721.getApproved(1)).to.equal(SwapFren721.address);
+    expect(await MockCatERC721.getApproved(2)).to.equal(SwapFren721.address);
 
     // Party A create swap
-    await SwapFren.connect(secondAddress).makeSwap(
+    await SwapFren721.connect(secondAddress).makeSwap(
       MockDogERC721.address,
       1,
       thirdAddress.address,
@@ -76,7 +76,7 @@ describe("SwapFrenTest", function () {
     );
 
     // Get active swap for fren.
-    let swap = await SwapFren.getSwapForFren(secondAddress.address);
+    let swap = await SwapFren721.getSwapForFren(secondAddress.address);
 
     // Verify swap details.
     expect(swap.fromFren).to.equal(secondAddress.address);
@@ -87,7 +87,7 @@ describe("SwapFrenTest", function () {
     expect(swap.forTokenId).to.equal(2);
 
     // Party B accept swap
-    await SwapFren.connect(thirdAddress).takeSwap(
+    await SwapFren721.connect(thirdAddress).takeSwap(
       secondAddress.address
     );
 
@@ -104,7 +104,7 @@ describe("SwapFrenTest", function () {
     expect(await MockCatERC721.ownerOf(2)).to.equal(secondAddress.address);
 
     // Get active swap for fren.
-    swap = await SwapFren.getSwapForFren(secondAddress.address);
+    swap = await SwapFren721.getSwapForFren(secondAddress.address);
 
     // Verify emptied swap details.
     expect(swap.fromFren).to.equal(ethers.constants.AddressZero);
@@ -120,7 +120,7 @@ describe("SwapFrenTest", function () {
     let msg = "Swap maker token contract does not support IERC721";
     // Attempt to make a swap
     await expect(
-      SwapFren.makeSwap(
+      SwapFren721.makeSwap(
         secondAddress.address,
         1,
         thirdAddress.address,
@@ -135,7 +135,7 @@ describe("SwapFrenTest", function () {
     let msg = "Swap taker token contract does not support IERC721";
     // Attempt to make a swap
     await expect(
-      SwapFren.makeSwap(
+      SwapFren721.makeSwap(
         MockDogERC721.address,
         1,
         thirdAddress.address,

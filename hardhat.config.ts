@@ -23,6 +23,9 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 // Go to https://hardhat.org/config/ to learn more
 
 const config: HardhatUserConfig = {
+  paths: {
+    artifacts: './app/src/artifacts',
+  },
   solidity: {
     compilers: [
       {
@@ -37,11 +40,14 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
+    hardhat: {
+      chainId: 1337
+    },
     ropsten: {
       url: process.env.ROPSTEN_URL || "",
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
+    }
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
