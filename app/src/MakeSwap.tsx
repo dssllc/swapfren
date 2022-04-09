@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
+import LinearProgress from '@mui/material/LinearProgress';
 import Link from "@mui/material/Link";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
@@ -20,10 +21,17 @@ function MakeSwap() {
   const [forTokenId, setForTokenId] = useState(0);
   const [signer, setSigner] = useState<ethers.providers.JsonRpcSigner | undefined>();
   const [fromTokenChecked, setFromTokenChecked] = useState(false);
+  const [fromTokenChecking, setFromTokenChecking] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [fromTokenApproved, setFromTokenApproved] = useState(false);
+  const [fromTokenApproving, setFromTokenApproving] = useState(false);
   const [swapChecked, setSwapChecked] = useState(false);
   const [swapPending, setSwapPending] = useState(true);
   const [swapTxn, setSwapTxn] = useState("");
+
+  interface ProviderRpcError extends Error {
+    reason?: string;
+  }
 
   async function toggleUserConnection() {
     if (!!(window as any).ethereum) {
@@ -54,10 +62,24 @@ function MakeSwap() {
       MockERC721.abi,
       signer
     );
-    setFromTokenChecked(true);
-    setFromTokenApproved(
-      ethers.utils.getAddress(await tokenContract.getApproved(fromTokenId)) == ethers.utils.getAddress(Config.swapFrenContract)
-    );
+    setErrorMessage("");
+    setFromTokenChecking(true);
+    tokenContract
+      .getApproved(fromTokenId)
+      .then(
+        (result: string) => {
+          setFromTokenApproved(
+            ethers.utils.getAddress(result) == ethers.utils.getAddress(Config.swapFrenContract)
+          );
+          setFromTokenChecking(false);
+          setFromTokenChecked(true);
+        },
+        (error: ProviderRpcError) => {
+          setFromTokenChecking(false);
+          setErrorMessage(error.reason ? error.reason : "An error occured, check the console");
+          setFromTokenChecked(false);
+        }
+      );
   }
 
   async function approveFromToken() {
@@ -66,12 +88,22 @@ function MakeSwap() {
       MockERC721.abi,
       signer
     );
-    let txn: any = await tokenContract.approve(Config.swapFrenContract, fromTokenId);
-    await txn.wait();
-    setFromTokenChecked(false);
-    setFromTokenApproved(
-      ethers.utils.getAddress(await tokenContract.getApproved(fromTokenId)) == ethers.utils.getAddress(Config.swapFrenContract)
-    );
+    setFromTokenApproving(true);
+    let txn: any = tokenContract
+      .approve(Config.swapFrenContract, fromTokenId)
+      .then(
+        () => {
+          setFromTokenApproving(false);
+          setFromTokenChecked(false);
+          setFromTokenApproved(true);
+        },
+        (error: ProviderRpcError) => {
+          setFromTokenApproving(false);
+          setErrorMessage("An error occured, check the console");
+          setFromTokenChecked(false);
+          setFromTokenApproved(false);
+        }
+      );
   }
 
   async function cancelSwapFrenApproval() {
@@ -80,9 +112,23 @@ function MakeSwap() {
       MockERC721.abi,
       signer
     );
-    let txn: any = await tokenContract.approve(ethers.constants.AddressZero, fromTokenId);
-    await txn.wait();
+    setFromTokenApproving(true);
     setFromTokenApproved(false);
+    let txn: any = await tokenContract
+      .approve(ethers.constants.AddressZero, fromTokenId)
+      .then(
+        () => {
+          setFromTokenApproving(false);
+          setFromTokenChecked(false);
+          setFromTokenApproved(false);
+        },
+        (error: ProviderRpcError) => {
+          setFromTokenApproving(false);
+          setErrorMessage("An error occured, check the console");
+          setFromTokenChecked(false);
+          setFromTokenApproved(false);
+        }
+      );
   }
 
   function clearForm() {
@@ -94,7 +140,10 @@ function MakeSwap() {
     setForTokenId(0);
     setSigner(undefined);
     setFromTokenChecked(false);
+    setFromTokenChecking(false);
+    setErrorMessage("");
     setFromTokenApproved(false);
+    setFromTokenApproving(false);
     setSwapTxn("");
   }
 
@@ -140,6 +189,7 @@ function MakeSwap() {
       >
           {userConnected ? "Disconnect" : "Connect"}
       </Button>
+
       {userConnected && swapChecked && !swapPending &&
       <>
         <Typography gutterBottom>Please enter the contract address of the NFT you want to trade.</Typography>
@@ -160,24 +210,32 @@ function MakeSwap() {
           onChange={(e) => {
             setFromTokenChecked(false);
             setFromTokenId(parseInt(e.target.value));
+            setErrorMessage("");
           }}
           sx={{ mb: 1 }}
         />
 
         <Typography gutterBottom>Please approve SwapFren to transfer your NFT.</Typography>
 
-        {!fromTokenChecked &&
+        {!fromTokenChecked && !fromTokenChecking &&
         <Button
           variant="contained"
           onClick={() => checkFromTokenApproval()}
-          disabled={!userConnected}
           sx={{ mb: 1 }}
         >
             Check Approval
         </Button>
         }
 
-        {fromTokenChecked && !fromTokenApproved  &&
+        {!fromTokenChecked && fromTokenChecking &&
+          <LinearProgress />
+        }
+
+        {fromTokenChecked && fromTokenApproving &&
+          <LinearProgress />
+        }
+
+        {fromTokenChecked && !fromTokenApproved && !fromTokenApproving &&
           <>
             <Alert severity="warning" sx={{ mb: 1 }} >Token NOT approved!</Alert>
             <Button
@@ -274,6 +332,10 @@ function MakeSwap() {
             Please check transaction
           </Link>
         </Alert>
+      }
+
+      {errorMessage &&
+        <Alert severity="error" sx={{ mb: 1 }} >{errorMessage}</Alert>
       }
     </>
 
