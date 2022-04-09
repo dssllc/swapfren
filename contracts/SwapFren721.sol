@@ -31,6 +31,10 @@ contract SwapFren721 {
         uint256 _forTokenId
     ) external {
         require(
+            _frenSwaps[msg.sender].fromFren == address(0),
+            "Swap in progress fren"
+        );
+        require(
             _fromTokenContract.supportsInterface(_erc721InterfaceId),
             "Swap maker token contract does not support IERC721"
         );
@@ -39,10 +43,6 @@ contract SwapFren721 {
             "Swap taker token contract does not support IERC721"
         );
         IERC721 fromContract = IERC721(_fromTokenContract);
-        require(
-            _frenSwaps[msg.sender].fromFren == address(0),
-            "Swap in progress fren"
-        );
         require(
             fromContract.getApproved(_fromTokenId) == address(this),
             "Not approved to transfer your token fren"
