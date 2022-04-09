@@ -55,7 +55,9 @@ function MakeSwap() {
       signer
     );
     setFromTokenChecked(true);
-    setFromTokenApproved((await tokenContract.getApproved(fromTokenId)) == Config.swapFrenContract);
+    setFromTokenApproved(
+      ethers.utils.getAddress(await tokenContract.getApproved(fromTokenId)) == ethers.utils.getAddress(Config.swapFrenContract)
+    );
   }
 
   async function approveFromToken() {
@@ -67,7 +69,9 @@ function MakeSwap() {
     let txn: any = await tokenContract.approve(Config.swapFrenContract, fromTokenId);
     await txn.wait();
     setFromTokenChecked(false);
-    setFromTokenApproved((await tokenContract.getApproved(fromTokenId)) == Config.swapFrenContract);
+    setFromTokenApproved(
+      ethers.utils.getAddress(await tokenContract.getApproved(fromTokenId)) == ethers.utils.getAddress(Config.swapFrenContract)
+    );
   }
 
   async function cancelSwapFrenApproval() {

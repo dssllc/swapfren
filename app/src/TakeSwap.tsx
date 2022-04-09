@@ -81,7 +81,6 @@ function TakeSwap() {
       signer
     );
     let txn: any = await tokenContract.takeSwap(fromFren);
-    await txn.wait();
     clearForm();
     setSwapTxn(txn.hash);
   }
@@ -94,7 +93,9 @@ function TakeSwap() {
         signer
       );
       setForTokenChecked(true);
-      setForTokenApproved((await tokenContract.getApproved(swapInfo?.forTokenId)) == Config.swapFrenContract);
+      setForTokenApproved(
+        ethers.utils.getAddress(await tokenContract.getApproved(swapInfo?.forTokenId)) == ethers.utils.getAddress(Config.swapFrenContract)
+      );
     }
   }
 
@@ -106,9 +107,10 @@ function TakeSwap() {
         signer
       );
       let txn: any = await tokenContract.approve(Config.swapFrenContract, swapInfo?.forTokenId);
-      await txn.wait();
       setForTokenChecked(false);
-      setForTokenApproved((await tokenContract.getApproved(swapInfo?.forTokenId)) == Config.swapFrenContract);
+      setForTokenApproved(
+        ethers.utils.getAddress(await tokenContract.getApproved(swapInfo?.forTokenId)) == ethers.utils.getAddress(Config.swapFrenContract)
+      );
     }
   }
 
@@ -120,7 +122,6 @@ function TakeSwap() {
         signer
       );
       let txn: any = await tokenContract.approve(ethers.constants.AddressZero, swapInfo?.forTokenId);
-      await txn.wait();
       setForTokenApproved(false);
     }
   }
