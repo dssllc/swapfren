@@ -27,6 +27,7 @@ function MakeSwap() {
   const [fromTokenApproving, setFromTokenApproving] = useState(false);
   const [swapChecked, setSwapChecked] = useState(false);
   const [swapPending, setSwapPending] = useState(true);
+  const [swapProcessing, setSwapProcessing] = useState(false);
   const [swapTxn, setSwapTxn] = useState("");
 
   interface ProviderRpcError extends Error {
@@ -89,13 +90,25 @@ function MakeSwap() {
       signer
     );
     setFromTokenApproving(true);
-    let txn: any = tokenContract
+    tokenContract
       .approve(Config.swapFrenContract, fromTokenId)
       .then(
-        () => {
-          setFromTokenApproving(false);
-          setFromTokenChecked(false);
-          setFromTokenApproved(true);
+        (result: any) => {
+          result
+          .wait()
+          .then(
+            (result: any) => {
+              setFromTokenApproving(false);
+              setFromTokenChecked(true);
+              setFromTokenApproved(true);
+            },
+            (error: any) => {
+              setFromTokenApproving(false);
+              setErrorMessage("An error occured, check the console");
+              setFromTokenChecked(false);
+              setFromTokenApproved(false);
+            }
+          );
         },
         (error: ProviderRpcError) => {
           setFromTokenApproving(false);
@@ -114,13 +127,25 @@ function MakeSwap() {
     );
     setFromTokenApproving(true);
     setFromTokenApproved(false);
-    let txn: any = await tokenContract
+    tokenContract
       .approve(ethers.constants.AddressZero, fromTokenId)
       .then(
-        () => {
-          setFromTokenApproving(false);
-          setFromTokenChecked(false);
-          setFromTokenApproved(false);
+        (result: any) => {
+          result
+          .wait()
+          .then(
+            (result: any) => {
+              setFromTokenApproving(false);
+              setFromTokenChecked(false);
+              setFromTokenApproved(false);
+            },
+            (error: any) => {
+              setFromTokenApproving(false);
+              setErrorMessage("An error occured, check the console");
+              setFromTokenChecked(false);
+              setFromTokenApproved(false);
+            }
+          );
         },
         (error: ProviderRpcError) => {
           setFromTokenApproving(false);
@@ -144,6 +169,7 @@ function MakeSwap() {
     setErrorMessage("");
     setFromTokenApproved(false);
     setFromTokenApproving(false);
+    setSwapProcessing(false);
     setSwapTxn("");
   }
 
@@ -153,16 +179,37 @@ function MakeSwap() {
       SwapFren721.abi,
       signer
     );
-    let txn: any = await tokenContract.makeSwap(
-      fromTokenContract,
-      fromTokenId,
-      forFren,
-      forTokenContract,
-      forTokenId
-    );
-    await txn.wait();
-    clearForm();
-    setSwapTxn(txn.hash);
+    setErrorMessage("");
+    setSwapProcessing(true);
+    tokenContract
+      .makeSwap(
+        fromTokenContract,
+        fromTokenId,
+        forFren,
+        forTokenContract,
+        forTokenId
+      )
+      .then(
+        (txn: any) => {
+          setSwapTxn(txn.hash);
+          txn
+            .wait()
+            .then(
+              (result: any) => {
+                clearForm();
+                setSwapTxn(txn.hash);
+              },
+              (error: any) => {
+                setSwapProcessing(false);
+                setErrorMessage("An error occured, check the console");
+              }
+            );
+        },
+        (error: any) => {
+          setSwapProcessing(false);
+          setErrorMessage("An error occured, check the console");
+        }
+      );
   }
 
   async function cancelSwap() {
@@ -171,9 +218,30 @@ function MakeSwap() {
       SwapFren721.abi,
       signer
     );
-    let txn: any = await tokenContract.cancelSwapMySwaps();
-    await txn.wait();
-    setSwapPending(false);
+    setErrorMessage("");
+    setSwapProcessing(true);
+    tokenContract
+      .cancelSwapMySwaps()
+      .then(
+        (result: any) => {
+          result
+            .wait()
+            .then(
+              (result: any) => {
+                setSwapProcessing(false);
+                setSwapPending(false);
+              },
+              (error: any) => {
+                setSwapProcessing(false);
+                setErrorMessage("An error occured, check the console");
+              }
+            );
+        },
+        (error: any) => {
+          setSwapProcessing(false);
+          setErrorMessage("An error occured, check the console");
+        }
+      );
   }
 
   return (
@@ -192,14 +260,14 @@ function MakeSwap() {
 
       {userConnected && swapChecked && !swapPending &&
       <>
-        <Typography gutterBottom>Please enter the contract address of the NFT you want to trade.</Typography>
+        <Typography>Please enter the contract address of the NFT you want to trade.</Typography>
         <TextField
           label="Your NFT address"
           variant="outlined"
           fullWidth
           disabled={!userConnected}
           onChange={(e) => setFromTokenContract(e.target.value)}
-          sx={{ mb: 1 }}
+          sx={{ mb: 1, mt: 2 }}
         />
         <Typography gutterBottom>Please enter the ID of the NFT you want to trade.</Typography>
         <TextField
@@ -227,11 +295,7 @@ function MakeSwap() {
         </Button>
         }
 
-        {!fromTokenChecked && fromTokenChecking &&
-          <LinearProgress />
-        }
-
-        {fromTokenChecked && fromTokenApproving &&
+        {(fromTokenChecking || fromTokenApproving) &&
           <LinearProgress />
         }
 
@@ -263,7 +327,7 @@ function MakeSwap() {
           </>
         }
 
-        {fromTokenChecked && fromTokenApproved  &&
+        {fromTokenChecked && fromTokenApproved &&
           <>
             <Typography gutterBottom>Please enter the owner wallet address of the NFT you want to trade for.</Typography>
             <TextField
@@ -292,34 +356,45 @@ function MakeSwap() {
               onChange={(e) => setForTokenId(parseInt(e.target.value))}
               sx={{ mb: 1 }}
             />
-            <Button
-              variant="contained"
-              onClick={() => makeSwap()}
-              disabled={!userConnected || !fromTokenApproved}
-            >
-                Submit
-            </Button>
+            {!swapProcessing &&
+              <Button
+                variant="contained"
+                onClick={() => makeSwap()}
+                disabled={!userConnected || !fromTokenApproved}
+                sx={{ mb: 1 }}
+              >
+                  Submit
+              </Button>
+            }
           </>
         }
       </>
       }
+
       {userConnected && !swapChecked &&
       <>
         <Alert severity="info" sx={{ mb: 1 }}>Checking for existing swap...</Alert>
       </>
       }
-      {userConnected && swapChecked && swapPending &&
+
+      {userConnected && swapChecked && swapPending && !swapProcessing &&
       <>
         <Alert severity="info" sx={{ mb: 1 }}>You already have an open swap</Alert>
         <Button
           variant="outlined"
           onClick={() => cancelSwap()}
           disabled={!userConnected}
+          sx={{ mb: 1 }}
         >
             Cancel Open Swap
         </Button>
       </>
       }
+
+      {swapProcessing &&
+        <LinearProgress sx={{ mb: 1 }} />
+      }
+
       {swapTxn &&
         <Alert severity="info" sx={{ mb: 1 }}>
           Swap made! Tell your fren so they can accept.<br />
