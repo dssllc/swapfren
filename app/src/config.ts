@@ -1,4 +1,4 @@
 export default {
-  swapFrenContract: "0x063a1a1afba6021679656cb9c9487858aac4ef41",
-  etherScanUrl: "https://rinkeby.etherscan.io"
+  swapFrenContract: process.env.REACT_APP_SWAPFREN_CONTRACT_ADDRESS ? process.env.REACT_APP_SWAPFREN_CONTRACT_ADDRESS : "",
+  etherScanUrl: process.env.REACT_APP_ETHERSCAN_URL ? process.env.REACT_APP_ETHERSCAN_URL : "https://rinkeby.etherscan.io"
 };
