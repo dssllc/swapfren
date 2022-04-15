@@ -1,20 +1,67 @@
+import Avatar from "@mui/material/Avatar";
+import Badge, { BadgeProps } from "@mui/material/Badge";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
-import MakeSwap from "./MakeSwap";
-import TakeSwap from "./TakeSwap";
+import Stack from "@mui/material/Stack";
+import { styled } from '@mui/material/styles';
+import Typography from "@mui/material/Typography";
+
+const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    backgroundColor: "#7DD1FD"
+  },
+}));
 
 function Hero() {
   return (
-    <Box sx={{ flexGrow: 1, mb: 5 }}>
-      <h1>SwapFren</h1>
-      <Grid container spacing={6}>
-        <Grid item xs={6}>
-          <MakeSwap />
+    <Box
+      sx={{
+        pt: 4,
+        pb: 3,
+      }}
+    >
+      <Container maxWidth="sm">
+        <Grid container spacing={0} direction="column" alignItems="center">
+          <Grid item>
+            <Badge
+              overlap="circular"
+              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+              badgeContent={<StyledBadge badgeContent={"i"} />}
+            >
+              <Avatar
+                alt="alien fren #4090"
+                src="/alien-fren-4090-full.png"
+                sx={{ width: 128, height: 128 }}
+              />
+            </Badge>
+          </Grid>
+          <Grid item>
+            <Typography
+              component="h1"
+              variant="h2"
+              align="center"
+              gutterBottom
+              sx={{
+                fontFamily: "'Pacifico', cursive",
+                fontSize: 64,
+                letterSpacing: "-0.25rem",
+              }}
+            >
+              swap fren
+            </Typography>
+            <Typography variant="h5" align="center" paragraph>
+              a digital fren to help swap tokens
+            </Typography>
+          </Grid>
+          <Grid item>
+            <Stack direction="row" spacing={2} justifyContent="center">
+              <Button variant="contained">Connect</Button>
+            </Stack>
+          </Grid>
         </Grid>
-        <Grid item xs={6}>
-          <TakeSwap />
-        </Grid>
-      </Grid>
+      </Container>
     </Box>
   );
 }

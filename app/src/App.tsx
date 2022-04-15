@@ -5,11 +5,23 @@ import Container from "@mui/material/Container";
 import Hero from "./Hero";
 import Copyright from "./Copyright";
 
-const themeLight = createTheme();
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: "#363636"
+    },
+    background: {
+      default: "#FFD3D3"
+    },
+    text: {
+      primary: "#363636"
+    }
+  }
+});
 
 function App() {
   return (
-    <ThemeProvider theme={themeLight}>
+    <ThemeProvider theme={theme}>
       <Container component="main" maxWidth="md">
         <CssBaseline />
         <Hero />

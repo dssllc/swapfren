@@ -1,4 +1,4 @@
 export default {
-  swapFrenContract: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-  etherScanUrl: "https://etherscan.io"
+  swapFrenContract: "0x063a1a1afba6021679656cb9c9487858aac4ef41",
+  etherScanUrl: "https://rinkeby.etherscan.io"
 };
