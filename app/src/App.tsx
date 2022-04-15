@@ -5,6 +5,7 @@ import Container from "@mui/material/Container";
 import TopBar from "./components/TopBar";
 import Hero from "./components/Hero";
 import Copyright from "./components/Copyright";
+import About from "./pages/About";
 
 const theme = createTheme({
   palette: {
@@ -26,7 +27,10 @@ function App() {
       <CssBaseline />
       <TopBar />
       <Container component="main" maxWidth="md">
-        <Hero />
+        <Routes>
+          <Route index element={<Hero />} />
+          <Route path="about" element={<About />} />
+        </Routes>
         <Copyright />
       </Container>
     </ThemeProvider>

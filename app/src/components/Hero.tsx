@@ -45,7 +45,7 @@ function Hero() {
             gutterBottom
             sx={{
               fontFamily: "'Pacifico', cursive",
-              fontSize: 64,
+              fontSize: 56,
               letterSpacing: "-0.25rem",
             }}
           >

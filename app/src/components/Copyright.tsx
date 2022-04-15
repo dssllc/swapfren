@@ -7,7 +7,7 @@ export default function Copyright() {
         variant="subtitle2"
         align="center"
         component="p"
-        sx={{ mt: 2 }}
+        sx={{ mt: 3 }}
       >
         {"made with ❤️ by "}
         <Link href="https://dssllc.eth.xyz">{"dssllc.eth"}</Link> &copy;{" "}

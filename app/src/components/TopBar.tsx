@@ -1,5 +1,5 @@
 import React from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useLocation } from "react-router-dom";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
@@ -10,6 +10,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Config from "../config";
+import Typography from "@mui/material/Typography";
 
 function TopBar() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -20,6 +21,7 @@ function TopBar() {
   const handleClose = () => {
     setAnchorEl(null);
   };
+  const location = useLocation();
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -37,7 +39,6 @@ function TopBar() {
             size="small"
             edge="start"
             aria-label="menu"
-            sx={{ mr: 2 }}
             aria-controls={open ? "main-menu" : undefined}
             aria-haspopup="true"
             aria-expanded={open ? "true" : undefined}
@@ -45,9 +46,17 @@ function TopBar() {
           >
             <MenuIcon />
           </IconButton>
+          {location.pathname != "/" &&
+          <Typography
+            sx={{
+              fontFamily: "'Pacifico', cursive",
+              fontSize: 24,
+            }}
+            color="text.primary"
+          >swapfren</Typography>
+          }
         </Toolbar>
       </AppBar>
-
       <Menu
         id="main-menu"
         anchorEl={anchorEl}
@@ -57,8 +66,11 @@ function TopBar() {
           "aria-labelledby": "menu-button",
         }}
       >
+        <MenuItem component={RouterLink} to="/" onClick={handleClose}>
+          home
+        </MenuItem>
         <MenuItem component={RouterLink} to="/about" onClick={handleClose}>
-          About
+          about
         </MenuItem>
         <MenuItem
           component={Link}
@@ -67,7 +79,7 @@ function TopBar() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Etherscan
+          etherscan
           <LogoutIcon sx={{ ml: 1 }} fontSize="small" />
         </MenuItem>
         <MenuItem
@@ -77,7 +89,7 @@ function TopBar() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          GitHub Repo <LogoutIcon sx={{ ml: 1 }} fontSize="small" />
+          github repo <LogoutIcon sx={{ ml: 1 }} fontSize="small" />
         </MenuItem>
       </Menu>
     </Box>
