@@ -3,6 +3,7 @@ import Badge, { BadgeProps } from "@mui/material/Badge";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
+import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import { styled } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
@@ -18,17 +19,23 @@ function Hero() {
     <Container maxWidth="sm">
       <Grid container spacing={0} direction="column" alignItems="center">
         <Grid item>
-          <Badge
-            overlap="circular"
-            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-            badgeContent={<StyledBadge badgeContent={"i"} />}
+          <Link
+            href="https://opensea.io/assets/0x123b30e25973fecd8354dd5f41cc45a3065ef88c/4090"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            <Avatar
-              alt="alien fren #4090"
-              src="/alien-fren-4090-full.png"
-              sx={{ width: 128, height: 128 }}
-            />
-          </Badge>
+            <Badge
+              overlap="circular"
+              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+              badgeContent={<StyledBadge badgeContent={"i"} />}
+            >
+              <Avatar
+                alt="alien fren #4090"
+                src="/alien-fren-4090-full.png"
+                sx={{ width: 128, height: 128 }}
+              />
+            </Badge>
+          </Link>
         </Grid>
         <Grid item>
           <Typography
@@ -50,7 +57,9 @@ function Hero() {
         </Grid>
         <Grid item>
           <Stack direction="row" spacing={2} justifyContent="center">
-            <Button variant="contained">Connect</Button>
+            <Button variant="contained" disabled={true}>
+              Coming soon
+            </Button>
           </Stack>
         </Grid>
       </Grid>

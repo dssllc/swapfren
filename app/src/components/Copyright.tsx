@@ -3,13 +3,15 @@ import { Typography, Link } from "@mui/material";
 export default function Copyright() {
   return (
     <footer>
-      <Typography variant="subtitle2" align="center" component="p">
+      <Typography
+        variant="subtitle2"
+        align="center"
+        component="p"
+        sx={{ mt: 2 }}
+      >
         {"made with ❤️ by "}
-        <Link href="https://dssllc.eth.xyz">
-
-          {"dssllc.eth"}
-        </Link>
-        {" "} &copy; {new Date().getFullYear()}
+        <Link href="https://dssllc.eth.xyz">{"dssllc.eth"}</Link> &copy;{" "}
+        {new Date().getFullYear()}
       </Typography>
     </footer>
   );
