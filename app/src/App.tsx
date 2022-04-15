@@ -2,8 +2,8 @@ import { Routes, Route, Link } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import Container from "@mui/material/Container";
-import Hero from "./Hero";
-import Copyright from "./Copyright";
+import Hero from "./components/Hero";
+import Copyright from "./components/Copyright";
 
 const theme = createTheme({
   palette: {

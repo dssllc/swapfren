@@ -6,10 +6,10 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { ethers } from "ethers";
 import SwapFren721
-  from "./artifacts/contracts/SwapFren721.sol/SwapFren721.json";
+  from "../artifacts/contracts/SwapFren721.sol/SwapFren721.json";
 import MockERC721
-  from "./artifacts/contracts/MockERC721.sol/MockERC721.json";
-import Config from "./config";
+  from "../artifacts/contracts/MockERC721.sol/MockERC721.json";
+import Config from "../config";
 
 interface Swap {
   fromFren: string;
