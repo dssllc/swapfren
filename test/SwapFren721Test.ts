@@ -5,6 +5,7 @@ describe("SwapFren721Test", function () {
   let owner: any,
     secondAddress: any,
     thirdAddress: any,
+    fourthAddress: any,
     MockDogERC721Contract: any,
     MockDogERC721: any,
     MockCatERC721Contract: any,
@@ -14,7 +15,12 @@ describe("SwapFren721Test", function () {
 
   before(async () => {
     // Get addresses.
-    [owner, secondAddress, thirdAddress] = await ethers.getSigners();
+    [
+      owner,
+      secondAddress,
+      thirdAddress,
+      fourthAddress,
+    ] = await ethers.getSigners();
     // Deploy an "dog" NFT contract for use in testing.
     MockDogERC721Contract = await ethers.getContractFactory("MockERC721");
     MockDogERC721 = await MockDogERC721Contract.deploy();
@@ -38,7 +44,7 @@ describe("SwapFren721Test", function () {
   });
 
   it("should swap with a fren", async () => {
-    // Verify initial approvals
+    // Verify initial empty approvals.
     expect(await MockDogERC721.getApproved(1)).to.equal(
       ethers.constants.AddressZero
     );
@@ -46,21 +52,15 @@ describe("SwapFren721Test", function () {
       ethers.constants.AddressZero
     );
 
-    // Verify initial ownership
+    // Verify initial ownership.
     expect(await MockDogERC721.ownerOf(1)).to.equal(secondAddress.address);
     expect(await MockCatERC721.ownerOf(2)).to.equal(thirdAddress.address);
 
-    // Party A approval
-    let approve = await MockDogERC721.connect(secondAddress).approve(
-      SwapFren721.address,
-      1
-    );
+    // Party A approval.
+    await MockDogERC721.connect(secondAddress).approve(SwapFren721.address, 1);
 
-    // Party B approval
-    approve = await MockCatERC721.connect(thirdAddress).approve(
-      SwapFren721.address,
-      2
-    );
+    // Party B approval.
+    await MockCatERC721.connect(thirdAddress).approve(SwapFren721.address, 2);
 
     // Verify approvals for SwapFren721
     expect(await MockDogERC721.getApproved(1)).to.equal(SwapFren721.address);
@@ -86,12 +86,10 @@ describe("SwapFren721Test", function () {
     expect(swap.forTokenContract).to.equal(MockCatERC721.address);
     expect(swap.forTokenId).to.equal(2);
 
-    // Party B accept swap
-    await SwapFren721.connect(thirdAddress).takeSwap(
-      secondAddress.address
-    );
+    // Party B accept swap.
+    await SwapFren721.connect(thirdAddress).takeSwap(secondAddress.address);
 
-    // Verify emptied approvals
+    // Verify emptied approvals.
     expect(await MockDogERC721.getApproved(1)).to.equal(
       ethers.constants.AddressZero
     );
@@ -99,7 +97,7 @@ describe("SwapFren721Test", function () {
       ethers.constants.AddressZero
     );
 
-    // Verify new ownership
+    // Verify new ownership.
     expect(await MockDogERC721.ownerOf(1)).to.equal(thirdAddress.address);
     expect(await MockCatERC721.ownerOf(2)).to.equal(secondAddress.address);
 
@@ -117,7 +115,7 @@ describe("SwapFren721Test", function () {
 
   it("should explode with bad maker NFT address for makeSwap", async () => {
     // Set expected message for bad maker token address
-    let msg = "Swap maker token contract does not support IERC721";
+    const msg = "Your token does not support IERC721";
     // Attempt to make a swap
     await expect(
       SwapFren721.makeSwap(
@@ -132,7 +130,7 @@ describe("SwapFren721Test", function () {
 
   it("should explode with bad taker NFT address for makeSwap", async () => {
     // Set expected message for bad maker token address
-    let msg = "Swap taker token contract does not support IERC721";
+    const msg = "Their token does not support IERC721";
     // Attempt to make a swap
     await expect(
       SwapFren721.makeSwap(
@@ -142,6 +140,129 @@ describe("SwapFren721Test", function () {
         secondAddress.address,
         2
       )
+    ).to.be.revertedWith(msg);
+  });
+
+  it("should explode with bad maker token ID for makeSwap", async () => {
+    // Set expected message for bad maker token address
+    const msg = "Not your token fren";
+    // Attempt to make a swap
+    await expect(
+      SwapFren721.makeSwap(
+        MockDogERC721.address,
+        1,
+        thirdAddress.address,
+        MockCatERC721.address,
+        2
+      )
+    ).to.be.revertedWith(msg);
+  });
+
+  it("should explode with bad taker token ID for makeSwap", async () => {
+    // Set expected message for bad maker token address
+    const msg = "Not their token fren";
+    // Attempt to make a swap
+    await expect(
+      SwapFren721.makeSwap(
+        MockDogERC721.address,
+        0,
+        thirdAddress.address,
+        MockCatERC721.address,
+        0
+      )
+    ).to.be.revertedWith(msg);
+  });
+
+  it("should explode when maker transfers token before swap is taken", async () => {
+    // Verify initial empty approvals.
+    expect(await MockDogERC721.getApproved(1)).to.equal(
+      ethers.constants.AddressZero
+    );
+    expect(await MockCatERC721.getApproved(2)).to.equal(
+      ethers.constants.AddressZero
+    );
+
+    // Verify initial ownership.
+    expect(await MockDogERC721.ownerOf(1)).to.equal(thirdAddress.address);
+    expect(await MockCatERC721.ownerOf(2)).to.equal(secondAddress.address);
+
+    // Party A approval.
+    await MockDogERC721.connect(thirdAddress).approve(SwapFren721.address, 1);
+
+    // Party B approval.
+    await MockCatERC721.connect(secondAddress).approve(SwapFren721.address, 2);
+
+    // Verify approvals for SwapFren721
+    expect(await MockDogERC721.getApproved(1)).to.equal(SwapFren721.address);
+    expect(await MockCatERC721.getApproved(2)).to.equal(SwapFren721.address);
+
+    // Party A create swap
+    await SwapFren721.connect(thirdAddress).makeSwap(
+      MockDogERC721.address,
+      1,
+      secondAddress.address,
+      MockCatERC721.address,
+      2
+    );
+
+    // Change maker token owner after creating swap.
+    await MockDogERC721.connect(thirdAddress).transferFrom(
+      thirdAddress.address,
+      owner.address,
+      1
+    );
+
+    // Set expected message owner check.
+    const msg = "Not their token fren";
+
+    // Attempt to take the swap.
+    await expect(
+      SwapFren721.connect(secondAddress).takeSwap(thirdAddress.address)
+    ).to.be.revertedWith(msg);
+  });
+
+  it("should explode when taker transfers token before swap is taken", async () => {
+    // Clear out the swap from previous test.
+    await SwapFren721.connect(thirdAddress).cancelSwapMySwaps();
+
+    // Verify initial empty approvals.
+    expect(await MockDogERC721.getApproved(1)).to.equal(
+      ethers.constants.AddressZero
+    );
+
+    // Verify initial ownership.
+    expect(await MockDogERC721.ownerOf(1)).to.equal(owner.address);
+    expect(await MockCatERC721.ownerOf(2)).to.equal(secondAddress.address);
+
+    // Party A approval.
+    await MockDogERC721.approve(SwapFren721.address, 1);
+
+    // Verify approvals for SwapFren721
+    expect(await MockDogERC721.getApproved(1)).to.equal(SwapFren721.address);
+    expect(await MockCatERC721.getApproved(2)).to.equal(SwapFren721.address);
+
+    // Party A create swap
+    await SwapFren721.makeSwap(
+      MockDogERC721.address,
+      1,
+      secondAddress.address,
+      MockCatERC721.address,
+      2
+    );
+
+    // Change taker token owner after creating swap.
+    await MockCatERC721.connect(secondAddress).transferFrom(
+      secondAddress.address,
+      thirdAddress.address,
+      2
+    );
+
+    // Set expected message owner check.
+    const msg = "Not your token fren";
+
+    // Attempt to take the swap.
+    await expect(
+      SwapFren721.connect(secondAddress).takeSwap(owner.address)
     ).to.be.revertedWith(msg);
   });
 });
