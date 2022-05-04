@@ -31,7 +31,7 @@ function Hero() {
             >
               <Avatar
                 alt="alien fren #4090"
-                src="/alien-fren-4090-full.png"
+                src="/android-chrome-512x512.png"
                 sx={{ width: 128, height: 128 }}
               />
             </Badge>
