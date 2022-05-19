@@ -1,7 +1,7 @@
 {
   "name": "swapfren",
   "version": "1.0.0",
-  "description": "a digital fren to help swap tokens on ethereum",
+  "description": "a digital fren to help swap tokens",
   "main": "index.js",
   "author": "Decentralized Software Systems, LLC",
   "license": "MIT",
