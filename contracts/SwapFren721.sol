@@ -2,14 +2,8 @@
 pragma solidity 0.8.14;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 
 contract SwapFren721 {
-    // ERC165Checker attachment for address type.
-    using ERC165Checker for address;
-
-    // ERC721 interface ID, set on deploy.
-    bytes4 private immutable _erc721InterfaceId;
 
     // Swap struct to store swap details.
     struct Swap {
@@ -22,12 +16,7 @@ contract SwapFren721 {
     }
 
     // Mapping of swaps to an address.
-    mapping(address => Swap) private _frenSwaps;
-
-    // Constructor, set ERC721 interface ID.
-    constructor() {
-        _erc721InterfaceId = type(IERC721).interfaceId;
-    }
+    mapping(address => Swap) public frenSwaps;
 
     /// @notice Make a swap.
     function makeSwap(
@@ -38,7 +27,7 @@ contract SwapFren721 {
         uint256 _forTokenId
     ) external {
         // Create/store swap.
-        _frenSwaps[msg.sender] = Swap(
+        frenSwaps[msg.sender] = Swap(
             msg.sender,
             _fromTokenContract,
             _fromTokenId,
@@ -51,7 +40,7 @@ contract SwapFren721 {
     /// @notice Take a swap.
     function takeSwap(address _fromFren) external {
         // Get swap.
-        Swap memory frenSwap = _frenSwaps[_fromFren];
+        Swap memory frenSwap = frenSwaps[_fromFren];
         // Connect to token contracts.
         IERC721 fromContract = IERC721(frenSwap.fromTokenContract);
         IERC721 forContract = IERC721(frenSwap.forTokenContract);
@@ -67,20 +56,6 @@ contract SwapFren721 {
             frenSwap.forTokenId
         );
         // Drop the swap.
-        delete _frenSwaps[_fromFren];
-    }
-
-    /// @notice Get swap for fren by address.
-    function getSwapForFren(address _fromFren)
-        external
-        view
-        returns (Swap memory _frenSwap)
-    {
-        return _frenSwaps[_fromFren];
-    }
-
-    /// @notice Cancel existing swap for sender.
-    function cancelSwapMySwaps() external {
-        delete _frenSwaps[msg.sender];
+        delete frenSwaps[_fromFren];
     }
 }

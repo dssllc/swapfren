@@ -76,7 +76,7 @@ describe("SwapFren721Test", function () {
     );
 
     // Get active swap for fren.
-    let swap = await SwapFren721.getSwapForFren(secondAddress.address);
+    let swap = await SwapFren721.frenSwaps(secondAddress.address);
 
     // Verify swap details.
     expect(swap.fromFren).to.equal(secondAddress.address);
@@ -102,7 +102,7 @@ describe("SwapFren721Test", function () {
     expect(await MockCatERC721.ownerOf(2)).to.equal(secondAddress.address);
 
     // Get active swap for fren.
-    swap = await SwapFren721.getSwapForFren(secondAddress.address);
+    swap = await SwapFren721.frenSwaps(secondAddress.address);
 
     // Verify emptied swap details.
     expect(swap.fromFren).to.equal(ethers.constants.AddressZero);
@@ -159,8 +159,6 @@ describe("SwapFren721Test", function () {
   });
 
   it("should explode when taker transfers token before swap is taken", async () => {
-    // Clear out the swap from previous test.
-    await SwapFren721.connect(thirdAddress).cancelSwapMySwaps();
 
     // Verify initial empty approvals.
     expect(await MockDogERC721.getApproved(1)).to.equal(
