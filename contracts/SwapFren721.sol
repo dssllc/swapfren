@@ -4,6 +4,7 @@ pragma solidity 0.8.14;
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract SwapFren721 {
+    error FailedTransfer();
 
     // Swap struct to store swap details.
     struct Swap {
@@ -55,6 +56,11 @@ contract SwapFren721 {
             frenSwap.fromFren,
             frenSwap.forTokenId
         );
+        // Check token ownership.
+        if (
+            fromContract.ownerOf(frenSwap.fromTokenId) != frenSwap.forFren ||
+            forContract.ownerOf(frenSwap.forTokenId) != frenSwap.fromFren
+        ) revert FailedTransfer();
         // Drop the swap.
         delete frenSwaps[_fromFren];
     }
