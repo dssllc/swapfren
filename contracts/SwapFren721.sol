@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract SwapFren721 {
     error FailedTransfer();
+    error FailedApprovalReset();
 
     // Swap struct to store swap details.
     struct Swap {
@@ -45,6 +46,11 @@ contract SwapFren721 {
         // Connect to token contracts.
         IERC721 fromContract = IERC721(frenSwap.fromTokenContract);
         IERC721 forContract = IERC721(frenSwap.forTokenContract);
+        // Check current token ownership.
+        if (fromContract.ownerOf(frenSwap.fromTokenId) != frenSwap.fromFren)
+            revert FailedTransfer();
+        if (forContract.ownerOf(frenSwap.forTokenId) != frenSwap.forFren)
+            revert FailedTransfer();
         // Perform transfers.
         fromContract.transferFrom(
             frenSwap.fromFren,
@@ -56,11 +62,16 @@ contract SwapFren721 {
             frenSwap.fromFren,
             frenSwap.forTokenId
         );
-        // Check token ownership.
-        if (
-            fromContract.ownerOf(frenSwap.fromTokenId) != frenSwap.forFren ||
-            forContract.ownerOf(frenSwap.forTokenId) != frenSwap.fromFren
-        ) revert FailedTransfer();
+        // Check new token ownership.
+        if (fromContract.ownerOf(frenSwap.fromTokenId) != frenSwap.forFren)
+            revert FailedTransfer();
+        if (forContract.ownerOf(frenSwap.forTokenId) != frenSwap.fromFren)
+            revert FailedTransfer();
+        // Check reset token approvals.
+        if (fromContract.getApproved(frenSwap.fromTokenId) != address(0))
+            revert FailedApprovalReset();
+        if (forContract.getApproved(frenSwap.forTokenId) != address(0))
+            revert FailedApprovalReset();
         // Drop the swap.
         delete frenSwaps[_fromFren];
     }
