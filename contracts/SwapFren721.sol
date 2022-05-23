@@ -37,37 +37,6 @@ contract SwapFren721 {
         address _forTokenContract,
         uint256 _forTokenId
     ) external {
-        // Check for existing swap.
-        require(
-            _frenSwaps[msg.sender].fromFren == address(0),
-            "Swap in progress fren"
-        );
-        // Check for ERC-721 interface on both tokens.
-        require(
-            _fromTokenContract.supportsInterface(_erc721InterfaceId),
-            "Your token does not support IERC721"
-        );
-        require(
-            _forTokenContract.supportsInterface(_erc721InterfaceId),
-            "Their token does not support IERC721"
-        );
-        // Connect to offered token contract.
-        IERC721 fromContract = IERC721(_fromTokenContract);
-        IERC721 forContract = IERC721(_forTokenContract);
-        // Check token ownership.
-        require(
-            fromContract.ownerOf(_fromTokenId) == msg.sender,
-            "Not your token fren"
-        );
-        require(
-            forContract.ownerOf(_forTokenId) == _forFren,
-            "Not their token fren"
-        );
-        // Check offered token approval.
-        require(
-            fromContract.getApproved(_fromTokenId) == address(this),
-            "Not approved to transfer your token fren"
-        );
         // Create/store swap.
         _frenSwaps[msg.sender] = Swap(
             msg.sender,
@@ -83,29 +52,9 @@ contract SwapFren721 {
     function takeSwap(address _fromFren) external {
         // Get swap.
         Swap memory frenSwap = _frenSwaps[_fromFren];
-        // Check for existing swap.
-        require(frenSwap.forFren == msg.sender, "No swap ready fren");
         // Connect to token contracts.
         IERC721 fromContract = IERC721(frenSwap.fromTokenContract);
         IERC721 forContract = IERC721(frenSwap.forTokenContract);
-        // Check token ownership.
-        require(
-            fromContract.ownerOf(frenSwap.fromTokenId) == frenSwap.fromFren,
-            "Not their token fren"
-        );
-        require(
-            forContract.ownerOf(frenSwap.forTokenId) == frenSwap.forFren,
-            "Not your token fren"
-        );
-        // Check token approvals.
-        require(
-            fromContract.getApproved(frenSwap.fromTokenId) == address(this),
-            "Not approved to transfer their token fren"
-        );
-        require(
-            forContract.getApproved(frenSwap.forTokenId) == address(this),
-            "Not approved to transfer your token fren"
-        );
         // Perform transfers.
         fromContract.transferFrom(
             frenSwap.fromFren,

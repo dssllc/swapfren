@@ -113,66 +113,6 @@ describe("SwapFren721Test", function () {
     expect(swap.forTokenId).to.equal(0);
   });
 
-  it("should explode with bad maker NFT address for makeSwap", async () => {
-    // Set expected message for bad maker token address
-    const msg = "Your token does not support IERC721";
-    // Attempt to make a swap
-    await expect(
-      SwapFren721.makeSwap(
-        secondAddress.address,
-        1,
-        thirdAddress.address,
-        MockCatERC721.address,
-        2
-      )
-    ).to.be.revertedWith(msg);
-  });
-
-  it("should explode with bad taker NFT address for makeSwap", async () => {
-    // Set expected message for bad maker token address
-    const msg = "Their token does not support IERC721";
-    // Attempt to make a swap
-    await expect(
-      SwapFren721.makeSwap(
-        MockDogERC721.address,
-        1,
-        thirdAddress.address,
-        secondAddress.address,
-        2
-      )
-    ).to.be.revertedWith(msg);
-  });
-
-  it("should explode with bad maker token ID for makeSwap", async () => {
-    // Set expected message for bad maker token address
-    const msg = "Not your token fren";
-    // Attempt to make a swap
-    await expect(
-      SwapFren721.makeSwap(
-        MockDogERC721.address,
-        1,
-        thirdAddress.address,
-        MockCatERC721.address,
-        2
-      )
-    ).to.be.revertedWith(msg);
-  });
-
-  it("should explode with bad taker token ID for makeSwap", async () => {
-    // Set expected message for bad maker token address
-    const msg = "Not their token fren";
-    // Attempt to make a swap
-    await expect(
-      SwapFren721.makeSwap(
-        MockDogERC721.address,
-        0,
-        thirdAddress.address,
-        MockCatERC721.address,
-        0
-      )
-    ).to.be.revertedWith(msg);
-  });
-
   it("should explode when maker transfers token before swap is taken", async () => {
     // Verify initial empty approvals.
     expect(await MockDogERC721.getApproved(1)).to.equal(
@@ -212,13 +152,10 @@ describe("SwapFren721Test", function () {
       1
     );
 
-    // Set expected message owner check.
-    const msg = "Not their token fren";
-
     // Attempt to take the swap.
     await expect(
       SwapFren721.connect(secondAddress).takeSwap(thirdAddress.address)
-    ).to.be.revertedWith(msg);
+    ).to.be.reverted;
   });
 
   it("should explode when taker transfers token before swap is taken", async () => {
@@ -257,12 +194,9 @@ describe("SwapFren721Test", function () {
       2
     );
 
-    // Set expected message owner check.
-    const msg = "Not your token fren";
-
     // Attempt to take the swap.
     await expect(
       SwapFren721.connect(secondAddress).takeSwap(owner.address)
-    ).to.be.revertedWith(msg);
+    ).to.be.reverted;
   });
 });
