@@ -155,7 +155,7 @@ describe("SwapFren721Test", function () {
     // Attempt to take the swap.
     await expect(
       SwapFren721.connect(secondAddress).takeSwap(thirdAddress.address)
-    ).to.be.reverted;
+    ).to.be.revertedWith("BadOwnership");
   });
 
   it("should explode when taker transfers token before swap is taken", async () => {
@@ -195,6 +195,6 @@ describe("SwapFren721Test", function () {
     // Attempt to take the swap.
     await expect(
       SwapFren721.connect(secondAddress).takeSwap(owner.address)
-    ).to.be.reverted;
+    ).to.be.revertedWith("BadOwnership");
   });
 });

@@ -4,6 +4,7 @@ pragma solidity 0.8.14;
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract SwapFren721 {
+    error BadOwnership();
     error FailedTransfer();
     error FailedApprovalReset();
 
@@ -48,9 +49,9 @@ contract SwapFren721 {
         IERC721 forContract = IERC721(frenSwap.forTokenContract);
         // Check current token ownership.
         if (fromContract.ownerOf(frenSwap.fromTokenId) != frenSwap.fromFren)
-            revert FailedTransfer();
+            revert BadOwnership();
         if (forContract.ownerOf(frenSwap.forTokenId) != frenSwap.forFren)
-            revert FailedTransfer();
+            revert BadOwnership();
         // Perform transfers.
         fromContract.transferFrom(
             frenSwap.fromFren,
