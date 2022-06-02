@@ -2,14 +2,11 @@
 pragma solidity 0.8.14;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 
 contract SwapFren721 {
-    // ERC165Checker attachment for address type.
-    using ERC165Checker for address;
-
-    // ERC721 interface ID, set on deploy.
-    bytes4 private immutable _erc721InterfaceId;
+    error BadOwnership();
+    error FailedTransfer();
+    error FailedApprovalReset();
 
     // Swap struct to store swap details.
     struct Swap {
@@ -22,12 +19,7 @@ contract SwapFren721 {
     }
 
     // Mapping of swaps to an address.
-    mapping(address => Swap) private _frenSwaps;
-
-    // Constructor, set ERC721 interface ID.
-    constructor() {
-        _erc721InterfaceId = type(IERC721).interfaceId;
-    }
+    mapping(address => Swap) public frenSwaps;
 
     /// @notice Make a swap.
     function makeSwap(
@@ -37,39 +29,8 @@ contract SwapFren721 {
         address _forTokenContract,
         uint256 _forTokenId
     ) external {
-        // Check for existing swap.
-        require(
-            _frenSwaps[msg.sender].fromFren == address(0),
-            "Swap in progress fren"
-        );
-        // Check for ERC-721 interface on both tokens.
-        require(
-            _fromTokenContract.supportsInterface(_erc721InterfaceId),
-            "Your token does not support IERC721"
-        );
-        require(
-            _forTokenContract.supportsInterface(_erc721InterfaceId),
-            "Their token does not support IERC721"
-        );
-        // Connect to offered token contract.
-        IERC721 fromContract = IERC721(_fromTokenContract);
-        IERC721 forContract = IERC721(_forTokenContract);
-        // Check token ownership.
-        require(
-            fromContract.ownerOf(_fromTokenId) == msg.sender,
-            "Not your token fren"
-        );
-        require(
-            forContract.ownerOf(_forTokenId) == _forFren,
-            "Not their token fren"
-        );
-        // Check offered token approval.
-        require(
-            fromContract.getApproved(_fromTokenId) == address(this),
-            "Not approved to transfer your token fren"
-        );
         // Create/store swap.
-        _frenSwaps[msg.sender] = Swap(
+        frenSwaps[msg.sender] = Swap(
             msg.sender,
             _fromTokenContract,
             _fromTokenId,
@@ -82,30 +43,15 @@ contract SwapFren721 {
     /// @notice Take a swap.
     function takeSwap(address _fromFren) external {
         // Get swap.
-        Swap memory frenSwap = _frenSwaps[_fromFren];
-        // Check for existing swap.
-        require(frenSwap.forFren == msg.sender, "No swap ready fren");
+        Swap memory frenSwap = frenSwaps[_fromFren];
         // Connect to token contracts.
         IERC721 fromContract = IERC721(frenSwap.fromTokenContract);
         IERC721 forContract = IERC721(frenSwap.forTokenContract);
-        // Check token ownership.
-        require(
-            fromContract.ownerOf(frenSwap.fromTokenId) == frenSwap.fromFren,
-            "Not their token fren"
-        );
-        require(
-            forContract.ownerOf(frenSwap.forTokenId) == frenSwap.forFren,
-            "Not your token fren"
-        );
-        // Check token approvals.
-        require(
-            fromContract.getApproved(frenSwap.fromTokenId) == address(this),
-            "Not approved to transfer their token fren"
-        );
-        require(
-            forContract.getApproved(frenSwap.forTokenId) == address(this),
-            "Not approved to transfer your token fren"
-        );
+        // Check current token ownership.
+        if (fromContract.ownerOf(frenSwap.fromTokenId) != frenSwap.fromFren)
+            revert BadOwnership();
+        if (forContract.ownerOf(frenSwap.forTokenId) != frenSwap.forFren)
+            revert BadOwnership();
         // Perform transfers.
         fromContract.transferFrom(
             frenSwap.fromFren,
@@ -117,21 +63,17 @@ contract SwapFren721 {
             frenSwap.fromFren,
             frenSwap.forTokenId
         );
+        // Check new token ownership.
+        if (fromContract.ownerOf(frenSwap.fromTokenId) != frenSwap.forFren)
+            revert FailedTransfer();
+        if (forContract.ownerOf(frenSwap.forTokenId) != frenSwap.fromFren)
+            revert FailedTransfer();
+        // Check reset token approvals.
+        if (fromContract.getApproved(frenSwap.fromTokenId) != address(0))
+            revert FailedApprovalReset();
+        if (forContract.getApproved(frenSwap.forTokenId) != address(0))
+            revert FailedApprovalReset();
         // Drop the swap.
-        delete _frenSwaps[_fromFren];
-    }
-
-    /// @notice Get swap for fren by address.
-    function getSwapForFren(address _fromFren)
-        external
-        view
-        returns (Swap memory _frenSwap)
-    {
-        return _frenSwaps[_fromFren];
-    }
-
-    /// @notice Cancel existing swap for sender.
-    function cancelSwapMySwaps() external {
-        delete _frenSwaps[msg.sender];
+        delete frenSwaps[_fromFren];
     }
 }
