@@ -11,11 +11,11 @@ contract SwapFren721 {
     // Swap struct to store swap details.
     struct Swap {
         address fromFren;
+        uint96 fromTokenId;
         address fromTokenContract;
-        uint256 fromTokenId;
         address forFren;
+        uint96 forTokenId;
         address forTokenContract;
-        uint256 forTokenId;
     }
 
     // Mapping of swaps to an address.
@@ -24,19 +24,19 @@ contract SwapFren721 {
     /// @notice Make a swap.
     function makeSwap(
         address _fromTokenContract,
-        uint256 _fromTokenId,
+        uint96 _fromTokenId,
         address _forFren,
         address _forTokenContract,
-        uint256 _forTokenId
+        uint96 _forTokenId
     ) external {
         // Create/store swap.
         frenSwaps[msg.sender] = Swap(
             msg.sender,
-            _fromTokenContract,
             _fromTokenId,
+            _fromTokenContract,
             _forFren,
-            _forTokenContract,
-            _forTokenId
+            _forTokenId,
+            _forTokenContract
         );
     }
 
